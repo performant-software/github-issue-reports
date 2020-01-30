@@ -18,75 +18,25 @@ function getReportName(repo, owner) {
   ].join('');
 }
 
-function generateAuthorization(token) {
-  return 'Basic ' + new Buffer(token + ':x-oauth-basic').toString('base64');
-}
 
 module.exports = {
-  generate: function (config) {
-
-    var options = {
-      uri: 'https://api.github.com/repos/' + config.owner + '/' + config.repo + '/issues',
+  generate: (config) => {
+    const options = {
+      uri: 'https://api.zenhub.com/p1/reports/release/5e309e4032970b6af25e726c/issues',
       headers: {
-        'User-Agent': 'github-issue-reports'
+        'X-Authentication-Token': config.token
       }
     };
 
-    if (config.token) {
-      options.headers['Authorization'] = generateAuthorization(config.token);
-    }
-
     rp(options)
-      .then(function (result) {
-        var issueList = JSON.parse(result);
-        var runDate = moment();
-
-        var issues = _.map(issueList, function (issue) {
-          return {
-            url: issue.html_url,
-            number: issue.number,
-            title: issue.title,
-            createdBy: issue.user.login,
-            createdAt: moment(issue.created_at),
-            comments: issue.comments,
-            closedAt: moment(issue.closed_at),
-            body: issue.body,
-            state: issue.state,
-            labels: _.map(issue.labels, function (label) {
-              return label.name;
-            })
-          }
+        .then((results) => {
+          let parseResults = JSON.parse(results);
+          console.log('SUCCESS')
+          console.log(parseResults)
+        })
+        .catch(function (err) {
+          console.log("ERROR!!")
         });
-
-        var openIssues = _.filter(issues, function (issue) {
-          return issue.state === 'open';
-        });
-
-        var closedIssues = _.filter(issues, function (issue) {
-          return issue.state === 'closed';
-        });
-
-        var templatePath = path.join(__dirname, 'report.jade');
-        var template = jade.compileFile(templatePath);
-        var context = {
-          openIssues: openIssues,
-          closedIssues: closedIssues,
-          runDate: runDate,
-          repo: config.repo
-        };
-        var html = template(context);
-
-        var fileName = getReportName(config.repo, config.owner);
-        fs.writeFile(fileName, html, function (err) {
-          if (err) {
-            console.log(err);
-          } else {
-            console.log('Generated issue report %s', fileName);
-          }
-        });
-      })
-      .catch(function (reason) {
-        console.log(reason);
-      });
   }
 };
+
