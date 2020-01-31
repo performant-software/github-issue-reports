@@ -1,15 +1,25 @@
-var fs = require('fs');
-var path = require('path');
-var _ = require('lodash');
-var moment = require('moment');
-var dateFormat = require('dateformat');
-var jade = require('jade');
-var rp = require('request-promise');
-var Buffer = require('buffer').Buffer;
+const fs = require('fs');
+const path = require('path');
+const moment = require('moment');
+const dateFormat = require('dateformat');
+const jade = require('jade');
+const rp = require('request-promise');
+const Buffer = require('buffer').Buffer;
 
-function generateAuthorization(token) {
+const generateGhAuthorization = (token) => {
     return 'Basic ' + new Buffer(token + ':x-oauth-basic').toString('base64');
-}
+};
+
+const getReportName = () => {
+    return [
+        'Performant Software',
+        '_',
+        'GNB',
+        '-',
+        dateFormat(new Date(), 'yyyymdd-HHMMss'),
+        '.html'
+    ].join('');
+};
 
 module.exports = {
   generate: (config) => {
@@ -19,10 +29,6 @@ module.exports = {
           headers: {
               'X-Authentication-Token': config.ztoken
           }
-      };
-
-      const generateGhAuthorization = (token) => {
-          return 'Basic ' + new Buffer(token + ':x-oauth-basic').toString('base64');
       };
 
       const ghOptions = {
@@ -40,7 +46,7 @@ module.exports = {
           .then(response => JSON.parse(response))
           .then(json => json.map(issue => issue.issue_number))
           .then(issuesNumberArr => {
-              let issueOptionsArr = issuesNumberArr.map((number, i) => {
+              const issueOptionsArr = issuesNumberArr.map((number, i) => {
                   let ghOptionsCopy = {...ghOptions};
                   ghOptionsCopy.uri = ghOptionsCopy.uri + issuesNumberArr[i];
                   return ghOptionsCopy;
@@ -48,7 +54,7 @@ module.exports = {
               return issueOptionsArr;
           })
           .then(optionsArr => {
-              let issuesDataPromises = optionsArr.map((optionsObj, i) => {
+              const issuesDataPromises = optionsArr.map(optionsObj => {
 
                   return rp(optionsObj).then(data => {
                      return JSON.parse(data)
@@ -58,7 +64,43 @@ module.exports = {
               return Promise.all(issuesDataPromises)
           })
           .then(issuesArr => {
-              console.log(issuesArr)
+
+              const runDate = moment();
+
+              const issues = issuesArr.map(issue => {
+                  return {
+                      url: issue.html_url,
+                      number: issue.number,
+                      title: issue.title,
+                      createdAt: moment(issue.created_at),
+                      comments: issue.comments,
+                      closedAt: moment(issue.closed_at),
+                      body: issue.body,
+                      state: issue.state,
+                      labels: issue.labels.map(label => label.name)
+                  }
+              });
+
+              const templatePath = path.join(__dirname, 'report.jade');
+              const template = jade.compileFile(templatePath);
+
+              const context = {
+                  issues: issues,
+                  runDate: runDate
+              };
+
+              const html = template(context);
+
+              const fileName = getReportName();
+
+              fs.writeFile(fileName, html, function (err) {
+                  if (err) {
+                      console.log(err);
+                  } else {
+                      console.log('Generated issue report %s', fileName);
+                  }
+              });
+
           })
 
           .catch(function (err) {
