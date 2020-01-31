@@ -53,35 +53,44 @@ module.exports = {
       // });
 
       rp(zhOptions)
-          .then(results => {
+          .then(response => JSON.parse(response))
+          .then(json => json.map(issue => issue.issue_number))
+          .then(issuesNumberArr => {
+              let issueOptionsArr = issuesNumberArr.map((number, i) => {
+                  let ghOptionsCopy = {...ghOptions};
+                  ghOptionsCopy.uri = ghOptionsCopy.uri + issuesNumberArr[i]
+                  return ghOptionsCopy;
+              })
+              return issueOptionsArr;
+          })
+          .then(optionsArr => {
+              let issuesData = optionsArr.map((optionsObj, i) => {
 
-            let parsedResults = JSON.parse(results);
+                  return rp(optionsObj).then(data => {
+                     return data
+                  })
 
-            let issuesNumbers = parsedResults.map(issue => issue.issue_number);
+              })
+              return Promise.all(issuesData)
+          })
+          .then(end => {
+              console.log(end)
+          })
 
 
-            let ghIssueOptionsList = issuesNumbers.map((number, i) => {
-                let ghOptionsCopy = {...ghOptions};
-                ghOptionsCopy.uri = ghOptionsCopy.uri + issuesNumbers[i]
-                return ghOptionsCopy;
-            });
 
-            let ghIssuesData =
-            ghIssueOptionsList.map((options, i) => {
-                return rp(options)
-                    .then(issue => {
-                        return JSON.parse(issue)
-                        // console.log('options list map ' + i)
-                        // console.log(JSON.parse(issue))
-                    })
-            });
-                return Promise.all(issueList => {
-                    console.log(issueList)
-                })
-        })
-        //   .then(optionsList => {
-        //   console.log('2nd then');
-        //   console.log(optionsList);
+
+        //
+        //     let ghIssuesData =
+        //     ghIssueOptionsList.map((options, i) => {
+        //         return rp(options)
+        //             .then(issue => {
+        //                 return JSON.parse(issue)
+        //             })
+        //     });
+        //         return Promise.all(issueList => {
+        //             console.log(issueList)
+        //         })
         // })
           .catch(function (err) {
           console.log("ERROR!!");
