@@ -41,6 +41,17 @@ module.exports = {
           ghOptions.headers['Authorization'] = generateAuthorization(config.gtoken);
       }
 
+      // const promise1 = Promise.resolve(3);
+      // const promise2 = 42;
+      // const promise3 = new Promise(function(resolve, reject) {
+      //     setTimeout(resolve, 100, 'foo');
+      // });
+      //
+      // Promise.all([promise1, promise2, promise3]).then(function(values) {
+      //     console.log('PROMISE ALL');
+      //     console.log(values);
+      // });
+
       rp(zhOptions)
           .then(results => {
 
@@ -55,19 +66,23 @@ module.exports = {
                 return ghOptionsCopy;
             });
 
-            // ghUriIssueList.map((uri, i) => {
-            //
-            // });
-
-            // return rp(ghOptions)
-              console.log('1st then');
-              console.log(parsedResults);
-              console.log(issuesNumbers);
-              console.log(ghIssueOptionsList);
+            let ghIssuesData =
+            ghIssueOptionsList.map((options, i) => {
+                return rp(options)
+                    .then(issue => {
+                        return JSON.parse(issue)
+                        // console.log('options list map ' + i)
+                        // console.log(JSON.parse(issue))
+                    })
+            });
+                return Promise.all(issueList => {
+                    console.log(issueList)
+                })
         })
-          .then(details => {
-          console.log(JSON.parse(details))
-        })
+        //   .then(optionsList => {
+        //   console.log('2nd then');
+        //   console.log(optionsList);
+        // })
           .catch(function (err) {
           console.log("ERROR!!");
           console.log(err)
