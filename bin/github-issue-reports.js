@@ -5,10 +5,11 @@ var program = require('commander');
 
 program
   .version(packageJson.version)
-  .usage('[-t <token>]')
+  .usage('[-z <ztoken>]')
   // .option('-o, --owner <value>', 'owner of the repo')
   // .option('-r, --repo <value>', 'name of the repo')
-  .option('-t, --token [value]', 'Github API access token')
+  .option('-z, --ztoken [value]', 'Zenhub API access token')
+  .option('-g, --gtoken [value]', 'Github API access token')
   .parse(process.argv);
 
 // if (!program.owner || !program.repo) {
@@ -18,7 +19,8 @@ program
   var options = {
     // owner: program.owner,
     // repo: program.repo,
-    token: program.token
+    ztoken: program.ztoken,
+    gtoken: program.gtoken
   };
 
   var reporter = require('../src/report-generator');
