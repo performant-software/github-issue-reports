@@ -21,11 +21,11 @@
   "author": "Adam Thody",
   "license": "MIT",
   "dependencies": {
-    "lodash": "^2.4.1",
-    "jade": "^1.8.2",
-    "dateformat": "^1.0.11",
-    "moment": "^2.8.4",
     "commander": "^2.5.1",
+    "dateformat": "^1.0.11",
+    "jade": "^1.8.2",
+    "lodash": "^2.4.1",
+    "moment": "^2.8.4",
     "request-promise": "^0.3.2"
   }
 }
