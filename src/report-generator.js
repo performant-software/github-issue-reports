@@ -43,17 +43,27 @@ module.exports = {
 
       rp(zhOptions)
           .then(results => {
+
             let parsedResults = JSON.parse(results);
+
             let issuesNumbers = parsedResults.map(issue => issue.issue_number);
-            console.log('1st then');
-            console.log(parsedResults);
-            console.log(issuesNumbers);
-            let ghUriIssueList = issuesNumbers.map((number, i) => {
+
+
+            let ghIssueOptionsList = issuesNumbers.map((number, i) => {
                 let ghOptionsCopy = {...ghOptions};
-                return ghOptionsCopy.uri = ghOptionsCopy.uri + issuesNumbers[i]
+                ghOptionsCopy.uri = ghOptionsCopy.uri + issuesNumbers[i]
+                return ghOptionsCopy;
             });
-              console.log(ghUriIssueList);
+
+            // ghUriIssueList.map((uri, i) => {
+            //
+            // });
+
             // return rp(ghOptions)
+              console.log('1st then');
+              console.log(parsedResults);
+              console.log(issuesNumbers);
+              console.log(ghIssueOptionsList);
         })
           .then(details => {
           console.log(JSON.parse(details))
