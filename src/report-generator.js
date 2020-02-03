@@ -21,6 +21,10 @@ const getReportName = () => {
     ].join('');
 };
 
+// TODO: Get release by searching for certain release title
+// TODO: Get issue comments w/o images
+// TODO: Write to JSON file
+
 module.exports = {
   generate: (config) => {
 
