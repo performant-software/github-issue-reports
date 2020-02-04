@@ -5,20 +5,13 @@ var program = require('commander');
 
 program
   .version(packageJson.version)
-  .usage('[-z <ztoken>]')
-  // .option('-o, --owner <value>', 'owner of the repo')
-  // .option('-r, --repo <value>', 'name of the repo')
-  .option('-z, --ztoken [value]', 'Zenhub API access token')
-  .option('-g, --gtoken [value]', 'Github API access token')
+  .option('-r, --rel <value>', 'Zenhub release title')
+  .option('-z, --ztoken <value>', 'Zenhub API access token')
+  .option('-g, --gtoken <value>', 'Github API access token')
   .parse(process.argv);
 
-// if (!program.owner || !program.repo) {
-//   program.help();
-//
-// } else {
   var options = {
-    // owner: program.owner,
-    // repo: program.repo,
+    rel: program.rel,
     ztoken: program.ztoken,
     gtoken: program.gtoken
   };
