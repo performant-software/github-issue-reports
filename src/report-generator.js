@@ -102,46 +102,68 @@ module.exports = {
                 releaseArr => zenhub.findRelease(releaseArr, releaseTitle)
             )
             .then(foundRelease =>
-                zenhub.getReleaseIssues(foundRelease.release_id))
-            .then(releaseIssuesArr =>
-                Promise.all(
-                    releaseIssuesArr.map(issue => {
-                    let repoTitle = findRepoTitle(issue.repo_id);
-                    let issueNumber = issue.issue_number.toString()
-                    return github.getIssue(repoTitle, issueNumber)
-                }))
+                zenhub.getReleaseIssues(foundRelease.release_id)
+                    .then(issuesArr => {
+                        return {
+                            detail: foundRelease,
+                            issues: issuesArr
+                        }
+                    })
             )
-            .then(allIssuesResp =>
-                allIssuesResp.map(issue => {
-                    return  {
-                        url: issue.html_url,
-                        number: issue.number,
-                        title: issue.title,
-                        createdAt: moment(issue.created_at),
-                        commentsCount: issue.comments,
-                        commentsApiUrl: issue.comments_url,
-                        closedAt: moment(issue.closed_at),
-                        body: issue.body,
-                        state: issue.state,
-                        labels: issue.labels.map(label => label.name)
-                    }
-                })
+            .then(release => {
+
+                  return  Promise.all(
+                        release.issues.map(issue => {
+                            let repoTitle = findRepoTitle(issue.repo_id);
+                            let issueNumber = issue.issue_number.toString();
+                            return github.getIssue(repoTitle, issueNumber)
+                        }))
+                        .then( issues => {
+                                return {
+                                    detail: release.detail,
+                                    issues: issues
+                                }
+                            }
+                        )
+
+                }
             )
-            .then(issues => {
+            .then(release => {
+                return {
+                    detail: release.detail,
+                    issues: release.issues.map(issue => {
+                                return  {
+                                    url: issue.html_url,
+                                    number: issue.number,
+                                    title: issue.title,
+                                    createdAt: moment(issue.created_at),
+                                    commentsCount: issue.comments,
+                                    commentsApiUrl: issue.comments_url,
+                                    closedAt: moment(issue.closed_at),
+                                    body: issue.body,
+                                    state: issue.state,
+                                    labels: issue.labels.map(label => label.name)
+                                }
+                            })
+                }
+            })
+            .then(release => {
                 const comments = Promise.all (
-                    issues.map(
+                    release.issues.map(
                         issue => {
                             return github.getComments(issue.commentsApiUrl);
                         }))
-
-                return Promise.all([issues, comments])
+                return Promise.all([release.detail, release.issues, comments])
             })
-            .then(([issues, comments]) => {
-                return issues.map((issue, index) => {
-                    return {...issue, comments: comments[index]}
-                })
+            .then(([detail, issues, comments]) => {
+                return {
+                    detail: detail,
+                    issues: issues.map((issue, index) => {
+                        return {...issue, comments: comments[index]}
+                    })
+                }
             })
-            .then(data => {console.log(data)})
+            .then(data => {console.log(data.issues[0].comments)})
             .catch(function (err) {
               console.log("ERROR!!");
               console.log(err)
